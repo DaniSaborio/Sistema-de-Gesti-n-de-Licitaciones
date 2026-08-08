@@ -494,3 +494,6 @@ node_modules/
 # Env
 .env
 *.env
+
+# Claude Code local settings
+.claude/
