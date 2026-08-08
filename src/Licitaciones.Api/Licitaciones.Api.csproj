@@ -14,6 +14,9 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Biblioteca de controladores/DTOs REST; el host ejecutable es Licitaciones.Web. -->
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>
