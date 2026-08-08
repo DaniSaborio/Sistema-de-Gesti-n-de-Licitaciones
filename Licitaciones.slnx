@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Licitaciones.Api/Licitaciones.Api.csproj" />
+    <Project Path="src/Licitaciones.Application/Licitaciones.Application.csproj" />
+    <Project Path="src/Licitaciones.Domain/Licitaciones.Domain.csproj" />
+    <Project Path="src/Licitaciones.Infrastructure/Licitaciones.Infrastructure.csproj" />
+    <Project Path="src/Licitaciones.Web/Licitaciones.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Licitaciones.FunctionalTests/Licitaciones.FunctionalTests.csproj" />
+    <Project Path="tests/Licitaciones.IntegrationTests/Licitaciones.IntegrationTests.csproj" />
+    <Project Path="tests/Licitaciones.UnitTests/Licitaciones.UnitTests.csproj" />
+  </Folder>
+</Solution>
