@@ -130,8 +130,8 @@
     <h2 class="h5">Registrar oferta</h2>
     <form asp-action="RegistrarOferta" asp-route-id="@licitacion.Id" method="post" class="row g-2 align-items-end mb-4">
         <div class="col-auto">
-            <label class="form-label">Proveedor</label>
-            <select name="proveedorId" class="form-select" required>
+            <label for="registrar-oferta-proveedor" class="form-label">Proveedor</label>
+            <select id="registrar-oferta-proveedor" name="proveedorId" class="form-select" required>
                 <option value="">Seleccione...</option>
                 @foreach (var proveedor in Model.ProveedoresDisponibles)
                 {
@@ -140,10 +140,10 @@
             </select>
         </div>
         <div class="col-auto">
-            <label class="form-label">Monto ofertado (CRC)</label>
+            <label for="registrar-oferta-monto" class="form-label">Monto ofertado (CRC)</label>
             <div class="input-group">
                 <span class="input-group-text">₡</span>
-                <input type="number" name="montoOfertadoCRC" step="0.01" min="0.01" class="form-control" required />
+                <input id="registrar-oferta-monto" type="number" name="montoOfertadoCRC" step="0.01" min="0.01" class="form-control" required />
             </div>
         </div>
         <div class="col-auto">

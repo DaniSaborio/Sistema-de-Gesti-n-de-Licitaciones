@@ -52,7 +52,10 @@ public class FlujoCompletoTests(AplicacionWebFixture fixture)
 
         // 3. Publicar.
         await page.GetByRole(AriaRole.Button, new() { Name = "Publicar" }).ClickAsync();
-        await Expect(page.GetByText("Publicada")).ToBeVisibleAsync();
+        // GetByText("Publicada") es ambiguo: coincide tanto con el badge de estado
+        // como con el banner de éxito ("...ahora está en Publicada"); se apunta al
+        // badge específicamente por su clase CSS.
+        await Expect(page.Locator("span.badge.text-bg-success")).ToHaveTextAsync("Publicada");
 
         // 4. Registrar oferta.
         await page.GetByLabel("Proveedor").SelectOptionAsync(new SelectOptionValue { Label = $"Proveedor E2E {sufijo}" });
