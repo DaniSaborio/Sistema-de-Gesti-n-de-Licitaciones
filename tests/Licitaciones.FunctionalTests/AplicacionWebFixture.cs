@@ -1,11 +1,6 @@
-using Licitaciones.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using Microsoft.Playwright;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -13,36 +8,17 @@ using Xunit;
 namespace Licitaciones.FunctionalTests;
 
 /// <summary>
-/// WebApplicationFactory arranca por defecto un TestServer en memoria (sin socket
-/// real), inútil para Playwright, que corre en un proceso de navegador aparte y
-/// necesita conectarse por HTTP real. Este factory fuerza a Kestrel a escuchar en un
-/// puerto real (patrón documentado por Microsoft para combinar WebApplicationFactory
-/// con pruebas de navegador) y expone la dirección efectivamente asignada por el SO.
-/// </summary>
-internal sealed class KestrelWebApplicationFactory : WebApplicationFactory<Program>
-{
-    public string BaseUrl { get; private set; } = string.Empty;
-
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        builder.ConfigureWebHost(webHost => webHost.UseUrls("http://127.0.0.1:0"));
-
-        var host = builder.Build();
-        host.Start();
-
-        var direcciones = host.Services.GetRequiredService<IServer>()
-            .Features.Get<IServerAddressesFeature>()!.Addresses;
-        BaseUrl = direcciones.First();
-
-        return host;
-    }
-}
-
-/// <summary>
-/// Levanta la aplicación real (Web + Api en un solo proceso) sobre Kestrel con un
-/// puerto real, contra un PostgreSQL de Testcontainers, y un navegador Chromium de
-/// Playwright headless — el flujo funcional de extremo a extremo exigido por la
-/// sección 12.3 del enunciado. Requiere Docker; se ejecuta en GitHub Actions.
+/// Levanta la aplicación real como un proceso independiente (exactamente como se
+/// ejecutaría en producción o en el Dockerfile), contra un PostgreSQL de
+/// Testcontainers, y un navegador Chromium de Playwright headless — el flujo
+/// funcional de extremo a extremo exigido por la sección 12.3 del enunciado.
+/// Se prefirió esto a WebApplicationFactory + Kestrel embebido: en dos intentos
+/// reales contra el runner de GitHub Actions, WebApplicationFactory nunca llegó a
+/// enlazar un puerto real (el servidor quedaba escuchando en "http://127.0.0.1:0",
+/// el puerto configurado, en vez del puerto real asignado por el sistema operativo),
+/// mientras que un proceso real de `dotnet` es exactamente lo mismo que ejecuta
+/// `docker compose up` o Kubernetes — más simple y más fiel a un escenario real.
+/// Requiere Docker (para Testcontainers); se ejecuta en GitHub Actions.
 /// </summary>
 public sealed class AplicacionWebFixture : IAsyncLifetime
 {
@@ -53,34 +29,88 @@ public sealed class AplicacionWebFixture : IAsyncLifetime
         .WithPassword("licitaciones")
         .Build();
 
-    private KestrelWebApplicationFactory? _factory;
+    private readonly HttpClient _httpClient = new();
+    private Process? _proceso;
     private IPlaywright? _playwright;
 
-    public string BaseUrl => _factory?.BaseUrl ?? string.Empty;
+    public string BaseUrl { get; private set; } = string.Empty;
     public IBrowser Browser { get; private set; } = default!;
 
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync();
 
-        // Program.cs lee la cadena de conexión de forma síncrona y temprana (antes de
-        // builder.Build()), así que un ConfigureAppConfiguration inyectado vía
-        // WithWebHostBuilder llega demasiado tarde para hosting mínimo (Program.cs de
-        // top-level statements). Las variables de entorno sí las lee
-        // WebApplicationBuilder.CreateBuilder() desde la primera línea.
-        Environment.SetEnvironmentVariable("ConnectionStrings__LicitacionesDb", _postgres.GetConnectionString());
+        var puerto = ObtenerPuertoLibre();
+        BaseUrl = $"http://127.0.0.1:{puerto}";
 
-        _factory = new KestrelWebApplicationFactory();
-        // Forzar la creación del host (CreateHost ya deja BaseUrl con el puerto real).
-        _ = _factory.Services;
+        var rutaEnsamblado = typeof(Program).Assembly.Location;
 
-        using (var scope = _factory.Services.CreateScope())
+        _proceso = new Process
         {
-            await scope.ServiceProvider.GetRequiredService<LicitacionesDbContext>().Database.MigrateAsync();
-        }
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                ArgumentList = { rutaEnsamblado },
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                Environment =
+                {
+                    ["ASPNETCORE_URLS"] = BaseUrl,
+                    ["ASPNETCORE_ENVIRONMENT"] = "Development",
+                    ["ConnectionStrings__LicitacionesDb"] = _postgres.GetConnectionString(),
+                },
+            },
+        };
+        _proceso.Start();
+
+        await EsperarListoAsync();
 
         _playwright = await Playwright.CreateAsync();
         Browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+    }
+
+    private static int ObtenerPuertoLibre()
+    {
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var puerto = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return puerto;
+    }
+
+    private async Task EsperarListoAsync()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        Exception? ultimoError = null;
+
+        while (!cts.IsCancellationRequested)
+        {
+            if (_proceso!.HasExited)
+            {
+                var salida = await _proceso.StandardOutput.ReadToEndAsync();
+                var error = await _proceso.StandardError.ReadToEndAsync();
+                throw new InvalidOperationException(
+                    $"El proceso de la aplicación terminó antes de tiempo (código {_proceso.ExitCode}).\nSTDOUT: {salida}\nSTDERR: {error}");
+            }
+
+            try
+            {
+                var respuesta = await _httpClient.GetAsync($"{BaseUrl}/health/live", cts.Token);
+                if (respuesta.IsSuccessStatusCode)
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                ultimoError = ex;
+            }
+
+            await Task.Delay(500, CancellationToken.None);
+        }
+
+        throw new TimeoutException($"La aplicación no respondió en {BaseUrl}/health/live a tiempo.", ultimoError);
     }
 
     public async Task DisposeAsync()
@@ -91,11 +121,14 @@ public sealed class AplicacionWebFixture : IAsyncLifetime
         }
 
         _playwright?.Dispose();
+        _httpClient.Dispose();
 
-        if (_factory is not null)
+        if (_proceso is not null && !_proceso.HasExited)
         {
-            await _factory.DisposeAsync();
+            _proceso.Kill(entireProcessTree: true);
         }
+
+        _proceso?.Dispose();
 
         await _postgres.DisposeAsync();
     }
