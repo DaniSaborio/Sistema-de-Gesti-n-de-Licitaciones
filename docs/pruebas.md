@@ -4,19 +4,29 @@
 
 Tres niveles, cada uno con una responsabilidad distinta y sin solaparse (sección 12):
 
-| Nivel | Proyecto | Qué verifica | Infraestructura | Se ejecuta aquí |
+| Nivel | Proyecto | Qué verifica | Infraestructura | Estado |
 |---|---|---|---|---|
-| Unitarias | `Licitaciones.UnitTests` | Reglas de negocio puras (Domain), en aislamiento | Ninguna (repos simulados/no usados; `IClock` fijo) | ✅ Sí, localmente |
-| Integración | `Licitaciones.IntegrationTests` | EF Core + PostgreSQL real: migraciones, índices, FK, CHECK, concurrencia, endpoints HTTP completos | PostgreSQL real vía Testcontainers | ⚠️ Requiere Docker |
-| Funcionales/E2E | `Licitaciones.FunctionalTests` | El sistema completo desde un navegador real | Kestrel real + PostgreSQL (Testcontainers) + Chromium (Playwright) | ⚠️ Requiere Docker |
+| Unitarias | `Licitaciones.UnitTests` | Reglas de negocio puras (Domain), en aislamiento | Ninguna (repos simulados/no usados; `IClock` fijo) | ✅ 53/53 en verde, local y en CI |
+| Integración | `Licitaciones.IntegrationTests` | EF Core + PostgreSQL real: migraciones, índices, FK, CHECK, concurrencia, endpoints HTTP completos | PostgreSQL real vía Testcontainers | ✅ 12/12 en verde en CI |
+| Funcionales/E2E | `Licitaciones.FunctionalTests` | El sistema completo desde un navegador real | Proceso real de la app + PostgreSQL (Testcontainers) + Chromium (Playwright) | ✅ 7/7 en verde en CI |
 
 Este entorno de generación no tiene un daemon de Docker disponible (confirmado con
-`docker info`), así que las pruebas de integración y funcionales se escribieron,
-compilan y están listas, pero no se ejecutaron aquí — se ejecutan en GitHub Actions
-(que sí tiene Docker) y localmente por cualquier persona con Docker instalado. Como
-compensación, se verificó el sistema **manualmente contra una instancia real de
-PostgreSQL** (documentado en detalle en `bitacora-xp.md`), lo que de hecho encontró y
-corrigió tres defectos reales que ninguna prueba unitaria podía detectar.
+`docker info`), así que las pruebas de integración y funcionales no se ejecutaron
+localmente aquí — se escribieron, se depuraron y se confirmaron **en verde de verdad
+en GitHub Actions** (que sí tiene Docker), ejecución
+[`31742461266`](https://github.com/DaniSaborio/Sistema-de-Gesti-n-de-Licitaciones/actions/runs/31742461266).
+Como compensación adicional, también se verificó el sistema **manualmente contra una
+instancia real de PostgreSQL** en este entorno (documentado en detalle en
+`bitacora-xp.md`).
+
+La primera versión de ambas suites **no pasó** en su primera ejecución real: en
+conjunto, siete ejecuciones sucesivas de CI encontraron y corrigieron **siete
+defectos reales** — desde un `Content-Type` incorrecto en las respuestas de error de
+la API hasta un formulario con un problema real de accesibilidad que Playwright
+exponía como un timeout. El relato completo, con cada causa raíz y su corrección,
+está en `bitacora-xp.md` ("Primer run real de GitHub Actions" en adelante). Esa
+cadena de depuración es, en sí misma, la evidencia más concreta de por qué XP exige
+integración continua como práctica obligatoria.
 
 ## TDD (Test-Driven Development)
 

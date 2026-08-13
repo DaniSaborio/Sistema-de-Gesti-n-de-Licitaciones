@@ -186,6 +186,70 @@ unitarias ni la verificación manual habían detectado — la evidencia más con
 posible de por qué la sección 4.1 del enunciado exige integración continua como
 práctica XP obligatoria, y no solo como una casilla de la rúbrica.
 
+### Tercera vuelta: las pruebas funcionales corren de verdad y encuentran tres más
+
+Con los cuatro defectos anteriores corregidos, la ejecución `31740939047` llegó por
+primera vez a las pruebas funcionales — y las 7 fallaron con
+`net::ERR_CONNECTION_REFUSED` en `http://127.0.0.1:0`. El fixture usaba
+`WebApplicationFactory<Program>` con `UseUrls("http://127.0.0.1:0")`, esperando que
+Kestrel resolviera el puerto `0` a uno real asignado por el sistema operativo. No lo
+hacía: el servidor quedaba escuchando literalmente en el puerto `0`. Se aplicó el
+patrón documentado por Microsoft (sobrescribir `CreateHost`, arrancar el host
+explícitamente con `host.Start()` y leer `IServerAddressesFeature` después de
+arrancar) — commit `dc012ea`'s sucesor inmediato no incluido aún, corregido en un
+commit propio. La siguiente ejecución (`31741332519`) falló exactamente igual, mismo
+puerto `0`: el patrón documentado no se comportaba como se esperaba con el hosting
+mínimo de este proyecto (`Program.cs` de top-level statements interceptado por el
+mecanismo de host diferido de `WebApplicationFactory`).
+
+En vez de seguir depurando el comportamiento interno de `WebApplicationFactory`, se
+tomó una decisión de diseño distinta: **lanzar `Licitaciones.Web.dll` como un proceso
+real de `dotnet`** (`System.Diagnostics.Process`), en un puerto libre obtenido con
+`TcpListener`, esperando activamente `/health/live` antes de continuar — exactamente
+lo que hace `docker compose up` o Kubernetes, y más representativo de una prueba E2E
+genuina que un servidor en memoria. Commit `a73c601`. Con este cambio, la siguiente
+ejecución (`31741995858`) por fin conectó de verdad y pasaron 5 de 7 pruebas; los dos
+últimos fallos fueron defectos reales, no de infraestructura:
+
+1. El formulario "Registrar oferta" tenía `<label>` sin `for` asociado al
+   `<select>`/`<input>` correspondiente (sin `id`). `GetByLabel("Proveedor")` de
+   Playwright no podía resolver el control por nombre accesible. Este es, además, un
+   defecto real de accesibilidad (un lector de pantalla tampoco puede asociar la
+   etiqueta al campo) que ninguna prueba anterior había expuesto porque nunca se
+   había interactuado con ese formulario desde un motor que respeta la semántica de
+   accesibilidad del HTML, a diferencia de un clic por coordenadas.
+2. `GetByText("Publicada")` era ambiguo: coincidía tanto con el badge de estado como
+   con el banner de éxito ("...ahora está en Publicada"), violando el modo estricto
+   de Playwright.
+
+Commit `4563018`. Con ambas correcciones, la ejecución `31742461266` quedó **verde de
+punta a punta**: compilación, formato, pruebas unitarias con cobertura, pruebas de
+integración contra PostgreSQL real, pruebas funcionales con Chromium real contra un
+proceso real de la aplicación, build de la imagen Docker y validación de los ocho
+manifiestos de Kubernetes.
+
+### Resumen de la cadena completa de depuración de CI
+
+Siete ejecuciones de CI, **siete defectos reales distintos** encontrados y
+corregidos, ninguno reproducible sin ejecutar la infraestructura real (Docker,
+PostgreSQL, un navegador real, un proceso real de la aplicación):
+
+| # | Defecto | Cómo se manifestó |
+|---|---|---|
+| 1 | Tag de imagen Docker en mayúsculas | Build de imagen fallaba |
+| 2 | Config de prueba no llegaba a tiempo a `Program.cs` | Conexión rechazada a 127.0.0.1:5432 |
+| 3 | `WriteAsJsonAsync` sobrescribía el `Content-Type` | `409` con `application/json`, no `problem+json` |
+| 4 | Test de FK usaba el mismo `DbContext` que ya rastreaba la oferta | `InvalidOperationException` en vez de `DbUpdateException` |
+| 5 | `WebApplicationFactory` no enlazaba un puerto real | `ERR_CONNECTION_REFUSED` en `:0` |
+| 6 | `<label>` sin `for` en el formulario de ofertas | `GetByLabel` con timeout de 30s |
+| 7 | Locator de Playwright ambiguo | Violación de modo estricto |
+
+Esta es la evidencia más contundente de todo el proyecto de por qué XP exige
+integración continua como práctica obligatoria y no como una casilla: **ni una sola
+de las siete correcciones** habría sido necesaria si el criterio de "terminado"
+hubiese sido "compila y las pruebas unitarias pasan". Cada una requirió ejecutar la
+aplicación real contra infraestructura real.
+
 ## Trazabilidad (resumen)
 
 Cada historia de `historias-usuario.md` enlaza a sus pruebas; cada práctica XP de

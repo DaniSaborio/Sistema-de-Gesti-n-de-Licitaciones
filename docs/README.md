@@ -60,7 +60,7 @@ Scrum, Kanban ni ninguna combinación de metodologías.
 |---|---|
 | [`plan-xp.md`](plan-xp.md) | Planning Game, plan de liberación, las cuatro iteraciones y cómo se evidencia cada práctica XP en este repositorio concreto |
 | [`historias-usuario.md`](historias-usuario.md) | Las 13 historias de usuario, con prioridad, estimación, criterios de aceptación y enlace a sus pruebas y commits |
-| [`bitacora-xp.md`](bitacora-xp.md) | Resultado real de cada iteración: commits, velocidad, retroalimentación, y el relato completo (con evidencia) de la verificación en vivo contra PostgreSQL real que encontró y corrigió tres defectos reales |
+| [`bitacora-xp.md`](bitacora-xp.md) | Resultado real de cada iteración: commits, velocidad, retroalimentación, y el relato completo (con evidencia) de los diez defectos reales encontrados y corregidos verificando el sistema en vivo y depurando CI hasta dejarlo en verde |
 
 **La evidencia de TDD más concreta y verificable**: el commit `test(domain)` documenta
 un fallo genuino de prueba en `ResolutorNivelAprobacion` (dos rangos de aprobación
@@ -70,12 +70,17 @@ rojo-verde-refactor real, no narrado.
 
 **La evidencia de "diseño simple no es garantía de correcto a la primera"**: sin
 Docker disponible en este entorno, se instaló PostgreSQL nativo temporal y se probó el
-sistema completo en vivo (API por HTTP, interfaz por HTML renderizado). Eso encontró
-tres defectos reales — un TagHelper que no mostraba ningún monto, rutas de API que
-devolvían HTML de error en vez de JSON, y una serialización de enums/nombres de campo
-poco profesional — documentados y corregidos con su propio commit (`fix: corregir
-bugs encontrados al probar contra PostgreSQL real`). El detalle completo, con el
-razonamiento de cada corrección, está en `bitacora-xp.md`.
+sistema completo en vivo (API por HTTP, interfaz por HTML renderizado), lo que encontró
+tres defectos reales (commit `fix: corregir bugs encontrados al probar contra
+PostgreSQL real`). Después, la primera cadena de ejecuciones reales de GitHub Actions
+encontró **siete defectos reales más** — desde un tag de Docker en mayúsculas hasta un
+`<label>` sin asociar en un formulario, un problema real de accesibilidad que
+Playwright expuso como un timeout — hasta dejar los cuatro jobs del pipeline
+(compilación, pruebas unitarias/integración/funcionales, imagen Docker, manifiestos
+K8s) en verde de punta a punta
+([ejecución `31742461266`](https://github.com/DaniSaborio/Sistema-de-Gesti-n-de-Licitaciones/actions/runs/31742461266)).
+El relato completo de los diez defectos, con el razonamiento de cada corrección, está
+en `bitacora-xp.md`.
 
 ## Uso de inteligencia artificial
 
