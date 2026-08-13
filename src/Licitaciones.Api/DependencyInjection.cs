@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Licitaciones.Api.Middleware;
@@ -14,7 +15,8 @@ public static class DependencyInjection
     public static IServiceCollection AddApiModule(this IServiceCollection services)
     {
         services.AddControllers()
-            .AddApplicationPart(typeof(DependencyInjection).Assembly);
+            .AddApplicationPart(typeof(DependencyInjection).Assembly)
+            .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
         services.AddApiVersioning(options =>
             {

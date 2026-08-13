@@ -26,7 +26,17 @@ using (var scope = app.Services.CreateScope())
 
 // El manejador de excepciones se activa siempre (no solo en producción) para
 // que las rutas /api nunca filtren stack traces, incluso en Development.
-app.UseExceptionHandler("/Home/Error");
+// Se separa en dos ramas porque UseExceptionHandler(path) reejecuta el
+// pipeline en esa ruta SIN pasar por los IExceptionHandler registrados
+// (ApiExceptionHandler); manteniéndolas separadas, /api siempre responde
+// ProblemDetails y el resto del sitio siempre cae en /Home/Error.
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/api"),
+    apiApp => apiApp.UseExceptionHandler());
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/api"),
+    webApp => webApp.UseExceptionHandler("/Home/Error"));
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();

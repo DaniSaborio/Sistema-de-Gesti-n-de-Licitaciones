@@ -26,6 +26,8 @@ public sealed class MontoTagHelper : TagHelper
     public override void Process(TagHelperContext context, TagHelperOutput output)
     {
         output.TagName = "span";
+        // <monto ... /> llega en modo autocierre; sin esto el contenido se descarta al renderizar.
+        output.TagMode = TagMode.StartTagAndEndTag;
         output.Attributes.SetAttribute("class", "monto-valor");
 
         var textoCrc = CrcAmount.ToString("C2", CulturaCostaRica);

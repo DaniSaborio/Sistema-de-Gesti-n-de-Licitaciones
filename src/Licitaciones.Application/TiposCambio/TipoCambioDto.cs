@@ -1,11 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace Licitaciones.Application.TiposCambio;
 
 public sealed record TipoCambioDto(
     Guid Id,
-    decimal CRCporUSD,
+    [property: JsonPropertyName("crcPorUsd")] decimal CRCporUSD,
     DateTimeOffset FechaVigencia,
     bool Activo);
 
-public sealed record CrearTipoCambioRequest(decimal CRCporUSD, DateTimeOffset FechaVigencia);
+public sealed record CrearTipoCambioRequest([property: JsonPropertyName("crcPorUsd")] decimal CRCporUSD, DateTimeOffset FechaVigencia);
 
-public sealed record ActualizarTipoCambioRequest(decimal CRCporUSD, DateTimeOffset FechaVigencia);
+public sealed record ActualizarTipoCambioRequest([property: JsonPropertyName("crcPorUsd")] decimal CRCporUSD, DateTimeOffset FechaVigencia);
