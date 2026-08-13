@@ -124,6 +124,33 @@ correcto a la primera, y solo probar contra infraestructura real lo demuestra.
 CI los aprobaría — encontró y corrigió problemas de orden de imports y codificación de
 un archivo generado por EF Core que de otro modo habrían roto el primer run de CI.
 
+### Primer run real de GitHub Actions: dos defectos más
+
+El primer push que activó el workflow (`9708cf9`, ejecución `31739170252`) falló en
+dos jobs, con causas raíz reales verificadas en los logs de GitHub Actions (no
+hipotéticas):
+
+1. **`docker-build` falló con "repository name must be lowercase".** El tag de la
+   imagen usaba `github.repository_owner` (`DaniSaborio`) directamente; Docker exige
+   nombres de repositorio en minúsculas. Corregido normalizando el valor con `tr`
+   antes de construir el tag.
+2. **Los dos jobs de pruebas contra Docker fallaron con
+   `Npgsql.NpgsqlException: Failed to connect to 127.0.0.1:5432`** — el host y puerto
+   *por defecto* de Npgsql para una cadena de conexión vacía, no el puerto real que
+   Testcontainers había asignado. La causa: `Program.cs` usa hosting mínimo
+   (top-level statements) y lee la cadena de conexión de forma síncrona y temprana,
+   antes de que `WithWebHostBuilder(...).ConfigureAppConfiguration(...)` llegue a
+   aplicarse — un problema de temporización documentado de `WebApplicationFactory`
+   con este estilo de `Program.cs`. Se corrigió sobrescribiendo la variable de
+   entorno `ConnectionStrings__LicitacionesDb` *antes* de crear el `WebApplicationFactory`,
+   que sí se lee desde la primera línea de `WebApplicationBuilder.CreateBuilder()`.
+
+Commit `dc012ea`. Esto es, otra vez, la misma lección de la Iteración 2: un diseño
+razonable puede fallar por detalles de temporización de un framework que ninguna
+prueba unitaria expone — solo ejecutarlo de verdad (aquí, en el propio pipeline de
+CI) lo revela. La integración continua no es un checkbox: encontró dos defectos
+reales en su primera ejecución real.
+
 ## Trazabilidad (resumen)
 
 Cada historia de `historias-usuario.md` enlaza a sus pruebas; cada práctica XP de
