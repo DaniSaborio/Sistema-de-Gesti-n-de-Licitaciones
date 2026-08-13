@@ -1,0 +1,33 @@
+@using Licitaciones.Web.Models.Ofertas
+@model OfertaEditViewModel
+@{
+    ViewData["Title"] = "Editar oferta";
+}
+
+<h1 class="h3 mb-3">Editar oferta</h1>
+<p class="text-body-secondary">Licitación <strong>@Model.LicitacionCodigo</strong> — Proveedor <strong>@Model.ProveedorNombre</strong></p>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="LicitacionCodigo" />
+            <input type="hidden" asp-for="ProveedorNombre" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mb-3">
+                <label asp-for="MontoOfertadoCRC" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">₡</span>
+                    <input asp-for="MontoOfertadoCRC" type="number" step="0.01" min="0.01" class="form-control" autofocus />
+                </div>
+                <span asp-validation-for="MontoOfertadoCRC" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

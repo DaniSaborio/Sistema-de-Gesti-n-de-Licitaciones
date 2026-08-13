@@ -1,0 +1,32 @@
+@using Licitaciones.Web.Models.TiposCambio
+@model TipoCambioFormViewModel
+@{
+    ViewData["Title"] = "Nuevo tipo de cambio";
+}
+
+<h1 class="h3 mb-3">Nuevo tipo de cambio</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mb-3">
+                <label asp-for="CRCporUSD" class="form-label"></label>
+                <input asp-for="CRCporUSD" type="number" step="0.000001" min="0.000001" class="form-control" autofocus />
+                <span asp-validation-for="CRCporUSD" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="FechaVigencia" class="form-label"></label>
+                <input asp-for="FechaVigencia" type="date" class="form-control" />
+                <span asp-validation-for="FechaVigencia" class="text-danger"></span>
+            </div>
+            <div class="form-text mb-3">Se activará automáticamente si no existe ningún tipo de cambio activo.</div>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,79 @@
+@using Licitaciones.Application.Common
+@using Licitaciones.Application.Licitaciones
+@using Licitaciones.Application.Ofertas
+@using Licitaciones.Application.Proveedores
+@using Licitaciones.Web.Models.Shared
+@model ResultadoPaginado<OfertaDto>
+@{
+    ViewData["Title"] = "Ofertas";
+    var licitaciones = (IReadOnlyList<LicitacionDto>)(ViewData["Licitaciones"] ?? Array.Empty<LicitacionDto>());
+    var proveedores = (IReadOnlyList<ProveedorDto>)(ViewData["Proveedores"] ?? Array.Empty<ProveedorDto>());
+    var licitacionId = ViewData["LicitacionId"] as Guid?;
+    var proveedorId = ViewData["ProveedorId"] as Guid?;
+}
+
+<h1 class="h3 mb-3">Ofertas</h1>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="licitacionId" class="form-select">
+            <option value="">Todas las licitaciones</option>
+            @foreach (var licitacion in licitaciones)
+            {
+                <option value="@licitacion.Id" selected="@(licitacion.Id == licitacionId)">@licitacion.Codigo — @licitacion.Titulo</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="proveedorId" class="form-select">
+            <option value="">Todos los proveedores</option>
+            @foreach (var proveedor in proveedores)
+            {
+                <option value="@proveedor.Id" selected="@(proveedor.Id == proveedorId)">@proveedor.Nombre</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Licitación</th>
+                <th>Proveedor</th>
+                <th>Monto</th>
+                <th>Fecha de registro</th>
+                <th class="tabla-acciones">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Elementos.Count == 0)
+        {
+            <tr><td colspan="5" class="text-center text-body-secondary py-4">No hay ofertas registradas con estos filtros.</td></tr>
+        }
+        @foreach (var oferta in Model.Elementos)
+        {
+            <tr>
+                <td><a asp-controller="Licitaciones" asp-action="Details" asp-route-id="@oferta.LicitacionId">Ver licitación</a></td>
+                <td>@oferta.ProveedorNombre</td>
+                <td><monto crc-amount="@oferta.MontoOfertadoCRC" /></td>
+                <td>@oferta.FechaRegistro.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+                <td class="tabla-acciones">
+                    <a asp-action="Edit" asp-route-id="@oferta.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                            data-eliminar-url="@Url.Action("Delete", new { id = oferta.Id })" data-eliminar-nombre="la oferta de @oferta.ProveedorNombre">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<partial name="_Paginacion" model="@(new PaginacionViewModel { Accion = "Index", RouteValues = new { licitacionId, proveedorId }, PaginaActual = Model.Pagina, TotalPaginas = Model.TotalPaginas })" />
+
+<partial name="_ModalConfirmarEliminacion" />

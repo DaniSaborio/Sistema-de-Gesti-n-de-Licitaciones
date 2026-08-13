@@ -1,0 +1,59 @@
+@using Licitaciones.Application.Common
+@using Licitaciones.Application.NivelesAprobacion
+@using Licitaciones.Web.Models.Shared
+@model ResultadoPaginado<NivelAprobacionDto>
+@{
+    ViewData["Title"] = "Niveles de aprobación";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Niveles de aprobación</h1>
+    <a asp-action="Create" class="btn btn-primary">Nuevo nivel</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Monto mínimo</th>
+                <th>Monto máximo</th>
+                <th>Aprobador</th>
+                <th class="tabla-acciones">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Elementos.Count == 0)
+        {
+            <tr><td colspan="4" class="text-center text-body-secondary py-4">No hay niveles de aprobación configurados.</td></tr>
+        }
+        @foreach (var nivel in Model.Elementos)
+        {
+            <tr>
+                <td><monto crc-amount="@nivel.MontoMinimoCRC" /></td>
+                <td>
+                    @if (nivel.MontoMaximoCRC is null)
+                    {
+                        <span>Sin límite</span>
+                    }
+                    else
+                    {
+                        <monto crc-amount="@nivel.MontoMaximoCRC.Value" />
+                    }
+                </td>
+                <td>@nivel.Aprobador</td>
+                <td class="tabla-acciones">
+                    <a asp-action="Edit" asp-route-id="@nivel.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                            data-eliminar-url="@Url.Action("Delete", new { id = nivel.Id })" data-eliminar-nombre="el nivel de @nivel.Aprobador">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<partial name="_Paginacion" model="@(new PaginacionViewModel { Accion = "Index", PaginaActual = Model.Pagina, TotalPaginas = Model.TotalPaginas })" />
+
+<partial name="_ModalConfirmarEliminacion" />

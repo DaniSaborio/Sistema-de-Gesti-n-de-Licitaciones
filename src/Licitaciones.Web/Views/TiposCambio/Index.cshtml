@@ -1,0 +1,68 @@
+@using Licitaciones.Application.Common
+@using Licitaciones.Application.TiposCambio
+@using Licitaciones.Web.Models.Shared
+@model ResultadoPaginado<TipoCambioDto>
+@{
+    ViewData["Title"] = "Tipo de cambio";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Tipo de cambio</h1>
+    <a asp-action="Create" class="btn btn-primary">Nuevo tipo de cambio</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Colones por dólar</th>
+                <th>Fecha de vigencia</th>
+                <th>Estado</th>
+                <th class="tabla-acciones">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Elementos.Count == 0)
+        {
+            <tr><td colspan="4" class="text-center text-body-secondary py-4">No hay tipos de cambio registrados.</td></tr>
+        }
+        @foreach (var tipoCambio in Model.Elementos)
+        {
+            <tr>
+                <td>₡@tipoCambio.CRCporUSD.ToString("0.00")</td>
+                <td>@tipoCambio.FechaVigencia.LocalDateTime.ToString("dd/MM/yyyy")</td>
+                <td>
+                    @if (tipoCambio.Activo)
+                    {
+                        <span class="badge text-bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge text-bg-secondary">Inactivo</span>
+                    }
+                </td>
+                <td class="tabla-acciones">
+                    @if (!tipoCambio.Activo)
+                    {
+                        <form asp-action="Activar" asp-route-id="@tipoCambio.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-success">Activar</button>
+                        </form>
+                    }
+                    <a asp-action="Edit" asp-route-id="@tipoCambio.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    @if (!tipoCambio.Activo)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                                data-eliminar-url="@Url.Action("Delete", new { id = tipoCambio.Id })" data-eliminar-nombre="este tipo de cambio">
+                            Eliminar
+                        </button>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<partial name="_Paginacion" model="@(new PaginacionViewModel { Accion = "Index", PaginaActual = Model.Pagina, TotalPaginas = Model.TotalPaginas })" />
+
+<partial name="_ModalConfirmarEliminacion" />

@@ -1,0 +1,43 @@
+@using Licitaciones.Web.Models.Shared
+@model PaginacionViewModel
+@{
+    if (Model.TotalPaginas <= 1)
+    {
+        return;
+    }
+
+    Dictionary<string, string> ConRuta(int pagina)
+    {
+        var valores = new Dictionary<string, string>();
+        if (Model.RouteValues is not null)
+        {
+            foreach (var propiedad in Model.RouteValues.GetType().GetProperties())
+            {
+                var valor = propiedad.GetValue(Model.RouteValues)?.ToString();
+                if (!string.IsNullOrEmpty(valor))
+                {
+                    valores[propiedad.Name] = valor;
+                }
+            }
+        }
+
+        valores["pagina"] = pagina.ToString();
+        return valores;
+    }
+}
+<nav aria-label="Paginación de resultados">
+    <ul class="pagination">
+        <li class="page-item @(Model.PaginaActual <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="@Model.Accion" asp-all-route-data="@ConRuta(Model.PaginaActual - 1)">Anterior</a>
+        </li>
+        @for (var pagina = 1; pagina <= Model.TotalPaginas; pagina++)
+        {
+            <li class="page-item @(pagina == Model.PaginaActual ? "active" : "")">
+                <a class="page-link" asp-action="@Model.Accion" asp-all-route-data="@ConRuta(pagina)">@pagina</a>
+            </li>
+        }
+        <li class="page-item @(Model.PaginaActual >= Model.TotalPaginas ? "disabled" : "")">
+            <a class="page-link" asp-action="@Model.Accion" asp-all-route-data="@ConRuta(Model.PaginaActual + 1)">Siguiente</a>
+        </li>
+    </ul>
+</nav>

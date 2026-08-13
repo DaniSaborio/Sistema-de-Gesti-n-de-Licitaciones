@@ -1,0 +1,57 @@
+@using Licitaciones.Application.Common
+@using Licitaciones.Application.Proveedores
+@using Licitaciones.Web.Models.Shared
+@model ResultadoPaginado<ProveedorDto>
+@{
+    ViewData["Title"] = "Proveedores";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Proveedores</h1>
+    <a asp-action="Create" class="btn btn-primary">Nuevo proveedor</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="busqueda" value="@ViewData["Busqueda"]" class="form-control" placeholder="Buscar por nombre..." />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Registrado</th>
+                <th class="tabla-acciones">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Elementos.Count == 0)
+        {
+            <tr><td colspan="3" class="text-center text-body-secondary py-4">No hay proveedores registrados.</td></tr>
+        }
+        @foreach (var proveedor in Model.Elementos)
+        {
+            <tr>
+                <td>@proveedor.Nombre</td>
+                <td>@proveedor.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                <td class="tabla-acciones">
+                    <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                            data-eliminar-url="@Url.Action("Delete", new { id = proveedor.Id })" data-eliminar-nombre="@proveedor.Nombre">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<partial name="_Paginacion" model="@(new PaginacionViewModel { Accion = "Index", RouteValues = new { busqueda = ViewData["Busqueda"] }, PaginaActual = Model.Pagina, TotalPaginas = Model.TotalPaginas })" />
+
+<partial name="_ModalConfirmarEliminacion" />

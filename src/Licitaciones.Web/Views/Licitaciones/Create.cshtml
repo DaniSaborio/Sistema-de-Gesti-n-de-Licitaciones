@@ -1,0 +1,44 @@
+@using Licitaciones.Web.Models.Licitaciones
+@model LicitacionFormViewModel
+@{
+    ViewData["Title"] = "Nueva licitación";
+}
+
+<h1 class="h3 mb-3">Nueva licitación</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Codigo" class="form-label"></label>
+                <input asp-for="Codigo" class="form-control" autofocus />
+                <span asp-validation-for="Codigo" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label"></label>
+                <input asp-for="Titulo" class="form-control" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="FechaCierre" class="form-label"></label>
+                <input asp-for="FechaCierre" type="datetime-local" class="form-control" />
+                <span asp-validation-for="FechaCierre" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PresupuestoEstimadoCRC" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text">₡</span>
+                    <input asp-for="PresupuestoEstimadoCRC" type="number" step="0.01" min="0.01" class="form-control" />
+                </div>
+                <span asp-validation-for="PresupuestoEstimadoCRC" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

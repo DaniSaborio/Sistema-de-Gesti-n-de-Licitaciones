@@ -1,0 +1,88 @@
+@using Licitaciones.Application.Common
+@using Licitaciones.Application.Licitaciones
+@using Licitaciones.Domain.Licitaciones
+@using Licitaciones.Web.Models.Shared
+@model ResultadoPaginado<LicitacionDto>
+@{
+    ViewData["Title"] = "Licitaciones";
+
+    string ClaseBadge(EstadoLicitacion estado) => estado switch
+    {
+        EstadoLicitacion.Borrador => "text-bg-secondary",
+        EstadoLicitacion.Publicada => "text-bg-success",
+        EstadoLicitacion.Cerrada => "text-bg-danger",
+        _ => "text-bg-secondary",
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h3 mb-0">Licitaciones</h1>
+    <a asp-action="Create" class="btn btn-primary">Nueva licitación</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <input type="text" name="busqueda" value="@ViewData["Busqueda"]" class="form-control" placeholder="Buscar por código o título..." />
+    </div>
+    <div class="col-auto">
+        <select name="ordenarPor" class="form-select">
+            <option value="">Más recientes</option>
+            <option value="codigo" selected="@("codigo".Equals(ViewData["OrdenarPor"]))">Código</option>
+            <option value="fechaCierre" selected="@("fechaCierre".Equals(ViewData["OrdenarPor"]))">Fecha de cierre</option>
+            <option value="presupuesto" selected="@("presupuesto".Equals(ViewData["OrdenarPor"]))">Presupuesto</option>
+            <option value="estado" selected="@("estado".Equals(ViewData["OrdenarPor"]))">Estado</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Buscar / ordenar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Cierre</th>
+                <th>Presupuesto</th>
+                <th class="tabla-acciones">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Elementos.Count == 0)
+        {
+            <tr><td colspan="6" class="text-center text-body-secondary py-4">No hay licitaciones registradas.</td></tr>
+        }
+        @foreach (var licitacion in Model.Elementos)
+        {
+            <tr>
+                <td>@licitacion.Codigo</td>
+                <td>@licitacion.Titulo</td>
+                <td>
+                    <span class="badge @ClaseBadge(licitacion.Estado)">@licitacion.Estado</span>
+                    @if (licitacion.CerradaFuncionalmente && licitacion.Estado != EstadoLicitacion.Cerrada)
+                    {
+                        <span class="badge text-bg-warning" title="La fecha de cierre ya se alcanzó">Vencida</span>
+                    }
+                </td>
+                <td>@licitacion.FechaCierre.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+                <td><monto crc-amount="@licitacion.PresupuestoEstimadoCRC" /></td>
+                <td class="tabla-acciones">
+                    <a asp-action="Details" asp-route-id="@licitacion.Id" class="btn btn-sm btn-outline-primary">Ver</a>
+                    <a asp-action="Edit" asp-route-id="@licitacion.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                            data-eliminar-url="@Url.Action("Delete", new { id = licitacion.Id })" data-eliminar-nombre="@licitacion.Codigo">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<partial name="_Paginacion" model="@(new PaginacionViewModel { Accion = "Index", RouteValues = new { busqueda = ViewData["Busqueda"], ordenarPor = ViewData["OrdenarPor"], descendente = ViewData["Descendente"] }, PaginaActual = Model.Pagina, TotalPaginas = Model.TotalPaginas })" />
+
+<partial name="_ModalConfirmarEliminacion" />

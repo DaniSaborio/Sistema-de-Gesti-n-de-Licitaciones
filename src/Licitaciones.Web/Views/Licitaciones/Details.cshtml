@@ -1,0 +1,153 @@
+@using Licitaciones.Domain.Licitaciones
+@using Licitaciones.Domain.Ofertas
+@using Licitaciones.Web.Models.Licitaciones
+@model LicitacionDetalleViewModel
+@{
+    ViewData["Title"] = $"Licitación {Model.Licitacion.Codigo}";
+    var licitacion = Model.Licitacion;
+
+    string ClaseBadge(EstadoLicitacion estado) => estado switch
+    {
+        EstadoLicitacion.Borrador => "text-bg-secondary",
+        EstadoLicitacion.Publicada => "text-bg-success",
+        EstadoLicitacion.Cerrada => "text-bg-danger",
+        _ => "text-bg-secondary",
+    };
+
+    string TextoClasificacion(ClasificacionOferta clasificacion) => clasificacion switch
+    {
+        ClasificacionOferta.OfertaConveniente => "Oferta conveniente",
+        ClasificacionOferta.OfertaAceptable => "Oferta aceptable",
+        ClasificacionOferta.OfertaValidaSinAhorro => "Oferta válida sin ahorro",
+        _ => "Sin ofertas válidas",
+    };
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">@licitacion.Codigo — @licitacion.Titulo</h1>
+        <span class="badge @ClaseBadge(licitacion.Estado) fs-6">@licitacion.Estado</span>
+        @if (licitacion.CerradaFuncionalmente && licitacion.Estado != EstadoLicitacion.Cerrada)
+        {
+            <span class="badge text-bg-warning fs-6">Vencida (fecha de cierre alcanzada)</span>
+        }
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@licitacion.Id" class="btn btn-outline-secondary">Editar</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Presupuesto estimado</h2>
+                <p class="h4"><monto crc-amount="@licitacion.PresupuestoEstimadoCRC" /></p>
+                <h2 class="h6 text-body-secondary">Fecha de cierre</h2>
+                <p class="mb-0">@licitacion.FechaCierre.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Mejor oferta</h2>
+                @if (Model.MejorOferta.OfertaId is null)
+                {
+                    <p class="mb-0 text-body-secondary">Sin ofertas válidas.</p>
+                }
+                else
+                {
+                    <p class="h4"><monto crc-amount="@Model.MejorOferta.MontoOfertadoCRC!.Value" /></p>
+                    <p class="mb-1">@TextoClasificacion(Model.MejorOferta.Clasificacion) (@Model.MejorOferta.PorcentajeAhorro?.ToString("0.##")% de ahorro)</p>
+                    <p class="mb-0">Aprobador: <strong>@(Model.MejorOferta.Aprobador ?? "No configurado")</strong></p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Transición de estado</h2>
+                <div class="d-flex flex-column gap-2">
+                    @if (licitacion.Estado == EstadoLicitacion.Borrador)
+                    {
+                        <form asp-action="CambiarEstado" asp-route-id="@licitacion.Id" method="post">
+                            <input type="hidden" name="estadoDestino" value="@EstadoLicitacion.Publicada" />
+                            <button type="submit" class="btn btn-success w-100">Publicar</button>
+                        </form>
+                    }
+                    @if (licitacion.Estado != EstadoLicitacion.Cerrada)
+                    {
+                        <form asp-action="CambiarEstado" asp-route-id="@licitacion.Id" method="post">
+                            <input type="hidden" name="estadoDestino" value="@EstadoLicitacion.Cerrada" />
+                            <button type="submit" class="btn btn-outline-danger w-100">Cerrar</button>
+                        </form>
+                    }
+                    @if (licitacion.Estado == EstadoLicitacion.Cerrada)
+                    {
+                        <form asp-action="CambiarEstado" asp-route-id="@licitacion.Id" method="post">
+                            <input type="hidden" name="estadoDestino" value="@EstadoLicitacion.Publicada" />
+                            <button type="submit" class="btn btn-outline-warning w-100">Reabrir a Publicada</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5">Ofertas registradas</h2>
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Proveedor</th>
+                <th>Monto</th>
+                <th>Fecha de registro</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Ofertas.Count == 0)
+        {
+            <tr><td colspan="3" class="text-center text-body-secondary py-3">Aún no hay ofertas registradas.</td></tr>
+        }
+        @foreach (var oferta in Model.Ofertas.OrderBy(o => o.MontoOfertadoCRC))
+        {
+            <tr class="@(oferta.Id == Model.MejorOferta.OfertaId ? "table-success" : "")">
+                <td>@oferta.ProveedorNombre</td>
+                <td><monto crc-amount="@oferta.MontoOfertadoCRC" /></td>
+                <td>@oferta.FechaRegistro.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (licitacion.Estado == EstadoLicitacion.Publicada && !licitacion.CerradaFuncionalmente)
+{
+    <h2 class="h5">Registrar oferta</h2>
+    <form asp-action="RegistrarOferta" asp-route-id="@licitacion.Id" method="post" class="row g-2 align-items-end mb-4">
+        <div class="col-auto">
+            <label class="form-label">Proveedor</label>
+            <select name="proveedorId" class="form-select" required>
+                <option value="">Seleccione...</option>
+                @foreach (var proveedor in Model.ProveedoresDisponibles)
+                {
+                    <option value="@proveedor.Id">@proveedor.Nombre</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Monto ofertado (CRC)</label>
+            <div class="input-group">
+                <span class="input-group-text">₡</span>
+                <input type="number" name="montoOfertadoCRC" step="0.01" min="0.01" class="form-control" required />
+            </div>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Registrar oferta</button>
+        </div>
+    </form>
+}

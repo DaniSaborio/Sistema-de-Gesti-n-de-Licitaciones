@@ -1,8 +1,83 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="p-4 p-md-5 mb-4 rounded-3 bg-body-tertiary card-flujo">
+    <h1 class="display-6 fw-bold">Sistema de Gestión de Licitaciones</h1>
+    <p class="col-lg-9 fs-5">
+        Administra el ciclo completo de una licitación pública: registro de proveedores,
+        publicación de licitaciones, recepción de ofertas económicas en colones (CRC),
+        determinación de la mejor oferta y su nivel de aprobación correspondiente, con
+        conversión referencial a dólares (USD) para consulta.
+    </p>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">1. Proveedores y licitaciones</h2>
+                <p class="text-body-secondary">
+                    Se registra un proveedor con nombre único y una licitación con código único,
+                    presupuesto estimado y fecha/hora de cierre. La licitación nace en estado
+                    <span class="badge text-bg-secondary">Borrador</span> y se publica cuando está lista.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">2. Ofertas</h2>
+                <p class="text-body-secondary">
+                    Con la licitación <span class="badge text-bg-success">Publicada</span>, cada proveedor
+                    registra una única oferta económica en colones, sin superar el presupuesto y antes de
+                    la fecha de cierre. Ofertas duplicadas, vencidas o superiores al presupuesto se rechazan.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">3. Mejor oferta y aprobación</h2>
+                <p class="text-body-secondary">
+                    Al cierre, el sistema determina la mejor oferta (menor monto válido), la clasifica
+                    según su porcentaje de ahorro y resuelve automáticamente el aprobador correspondiente
+                    según los niveles de aprobación configurados.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Conversión CRC / USD</h2>
+                <p class="text-body-secondary">
+                    El colón costarricense (CRC) es la moneda oficial y única fuente de verdad almacenada.
+                    El botón <strong>₡ CRC / $ USD</strong> del menú superior alterna la visualización de
+                    todos los montos del sitio a su equivalente en dólares, calculado con el tipo de cambio
+                    activo, sin modificar los valores originales persistidos.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Accesos rápidos</h2>
+                <ul class="list-unstyled mb-0">
+                    <li><a asp-controller="Licitaciones" asp-action="Index">→ Gestionar licitaciones</a></li>
+                    <li><a asp-controller="Proveedores" asp-action="Index">→ Gestionar proveedores</a></li>
+                    <li><a asp-controller="Ofertas" asp-action="Index">→ Consultar ofertas</a></li>
+                    <li><a asp-controller="NivelesAprobacion" asp-action="Index">→ Niveles de aprobación</a></li>
+                    <li><a asp-controller="TiposCambio" asp-action="Index">→ Tipo de cambio</a></li>
+                    <li><a href="/docs/api" target="_blank" rel="noopener">→ Documentación interactiva de la API (Swagger)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
