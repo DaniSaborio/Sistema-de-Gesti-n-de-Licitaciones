@@ -151,6 +151,41 @@ prueba unitaria expone — solo ejecutarlo de verdad (aquí, en el propio pipeli
 CI) lo revela. La integración continua no es un checkbox: encontró dos defectos
 reales en su primera ejecución real.
 
+### Segunda vuelta: las pruebas de integración corren de verdad y encuentran dos más
+
+Con esas dos correcciones, la siguiente ejecución (`31740383274`) avanzó mucho más:
+compilación, formato, pruebas unitarias, build de Docker y validación de manifiestos
+K8s en verde, y las pruebas de integración **corrieron de verdad contra PostgreSQL
+real vía Testcontainers en el runner de GitHub** (10 de 12 en verde). Los dos casos
+que fallaron revelaron defectos reales nuevos, distintos a los anteriores:
+
+1. **`WriteAsJsonAsync` ignoraba el `Content-Type` ya asignado.**
+   `ApiExceptionHandler` fijaba `httpContext.Response.ContentType =
+   "application/problem+json"` y luego llamaba a `WriteAsJsonAsync(problemDetails,
+   cancellationToken)` — ese overload en particular sobrescribe el `Content-Type` con
+   `"application/json"` sin importar lo que ya estuviera asignado. Todas las
+   respuestas de error de la API llevaban el tipo de contenido incorrecto, un detalle
+   que la verificación manual anterior no había comprobado explícitamente (solo se
+   verificaron códigos de estado, no cabeceras). Corregido usando el overload que
+   recibe el `contentType` como argumento explícito.
+2. **El test de borrado físico restringido lanzaba la excepción "equivocada".**
+   `No_se_puede_eliminar_fisicamente_un_proveedor_con_ofertas_relacionadas` eliminaba
+   el proveedor desde el mismo `DbContext` que ya tenía la oferta relacionada cargada
+   en memoria; el *change tracker* de EF Core detecta ahí mismo que la relación
+   requerida quedaría "cortada" y lanza `InvalidOperationException` **antes** de
+   siquiera construir la sentencia SQL — nunca llega a preguntarle a PostgreSQL nada.
+   Es una excepción real y válida (el borrado sigue estando bloqueado), pero no la
+   misma que preveía el test (`DbUpdateException`, la que lanza el motor de base de
+   datos). Se corrigió realizando el borrado desde un `DbContext` nuevo que nunca
+   cargó la oferta, para que sea realmente la restricción de PostgreSQL la que
+   rechace la operación, que es lo que la prueba busca demostrar.
+
+Commit `c60cbe9`. En total, la cadena completa de ejecuciones reales de CI (no
+simuladas) encontró y corrigió **cuatro defectos reales** que ni las pruebas
+unitarias ni la verificación manual habían detectado — la evidencia más concreta
+posible de por qué la sección 4.1 del enunciado exige integración continua como
+práctica XP obligatoria, y no solo como una casilla de la rúbrica.
+
 ## Trazabilidad (resumen)
 
 Cada historia de `historias-usuario.md` enlaza a sus pruebas; cada práctica XP de
