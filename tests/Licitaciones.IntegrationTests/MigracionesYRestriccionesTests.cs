@@ -90,11 +90,18 @@ public class MigracionesYRestriccionesTests(PostgresContainerFixture fixture)
         db.Ofertas.Add(oferta);
         await db.SaveChangesAsync();
 
-        db.Proveedores.Remove(proveedor);
+        // Se elimina desde un DbContext nuevo, que nunca cargó la oferta relacionada:
+        // así el rechazo lo produce realmente la restricción de PostgreSQL
+        // (DbUpdateException), no el chequeo de consistencia del change tracker de EF
+        // en memoria (que lanzaría InvalidOperationException si la oferta estuviera
+        // rastreada en el mismo contexto, antes de llegar siquiera a la base de datos).
+        await using var dbEliminacion = fixture.CrearDbContext();
+        var proveedorParaEliminar = await dbEliminacion.Proveedores.SingleAsync(p => p.Id == proveedor.Id);
+        dbEliminacion.Proveedores.Remove(proveedorParaEliminar);
 
         // La FK ofertas -> proveedores está configurada con DeleteBehavior.Restrict (8.9): PostgreSQL
         // rechaza el borrado físico mientras existan ofertas relacionadas.
-        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        await Assert.ThrowsAsync<DbUpdateException>(() => dbEliminacion.SaveChangesAsync());
     }
 
     [Fact]

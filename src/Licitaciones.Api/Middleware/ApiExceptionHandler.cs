@@ -46,8 +46,10 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
         }
 
         httpContext.Response.StatusCode = status;
-        httpContext.Response.ContentType = "application/problem+json";
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        // WriteAsJsonAsync ignora un Response.ContentType asignado de antemano y lo
+        // sobrescribe con "application/json" salvo que se le pase explícitamente;
+        // el contentType debe ir como argumento de este overload, no como asignación previa.
+        await httpContext.Response.WriteAsJsonAsync(problemDetails, options: null, contentType: "application/problem+json", cancellationToken);
         return true;
     }
 
