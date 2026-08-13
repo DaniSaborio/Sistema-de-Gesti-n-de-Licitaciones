@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:5199/api/v1
+
+### 1. Crear proveedor
+POST {{baseUrl}}/proveedores
+Content-Type: application/json
+
+{
+  "nombre": "Empresa Central S.A."
+}
+
+### 2. Crear licitación
+POST {{baseUrl}}/licitaciones
+Content-Type: application/json
+
+{
+  "codigo": "LIC-2026-001",
+  "titulo": "Compra de equipo de cómputo",
+  "fechaCierre": "2026-12-31T17:00:00Z",
+  "presupuestoEstimadoCRC": 5000000.00
+}
+
+### 3. Publicar la licitación (reemplazar {{id}} con el Id devuelto en el paso 2)
+PATCH {{baseUrl}}/licitaciones/{{id}}/estado
+Content-Type: application/json
+
+{
+  "estadoDestino": "Publicada"
+}
+
+### 4. Registrar una oferta (reemplazar {{id}} y {{proveedorId}})
+POST {{baseUrl}}/licitaciones/{{id}}/ofertas
+Content-Type: application/json
+
+{
+  "proveedorId": "{{proveedorId}}",
+  "montoOfertadoCRC": 4500000.00
+}
+
+### 5. Intentar una oferta duplicada del mismo proveedor (debe responder 422)
+POST {{baseUrl}}/licitaciones/{{id}}/ofertas
+Content-Type: application/json
+
+{
+  "proveedorId": "{{proveedorId}}",
+  "montoOfertadoCRC": 4000000.00
+}
+
+### 6. Consultar la mejor oferta, clasificación y aprobador
+GET {{baseUrl}}/licitaciones/{{id}}/mejor-oferta
+
+### 7. Listar niveles de aprobación configurados
+GET {{baseUrl}}/niveles-aprobacion
+
+### 8. Consultar el tipo de cambio activo
+GET {{baseUrl}}/tipos-cambio
