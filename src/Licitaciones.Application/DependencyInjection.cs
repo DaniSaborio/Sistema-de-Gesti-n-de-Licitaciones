@@ -1,9 +1,9 @@
+using FluentValidation;
 using Licitaciones.Application.Licitaciones;
 using Licitaciones.Application.NivelesAprobacion;
 using Licitaciones.Application.Ofertas;
 using Licitaciones.Application.Proveedores;
 using Licitaciones.Application.TiposCambio;
-using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Licitaciones.Application;
