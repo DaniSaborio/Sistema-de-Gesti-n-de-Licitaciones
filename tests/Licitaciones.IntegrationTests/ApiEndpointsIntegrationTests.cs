@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using Licitaciones.Application.Proveedores;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Licitaciones.IntegrationTests;
@@ -19,16 +18,15 @@ public class ApiEndpointsIntegrationTests : IClassFixture<WebApplicationFactory<
 
     public ApiEndpointsIntegrationTests(PostgresContainerFixture fixture, WebApplicationFactory<Program> factory)
     {
-        _client = factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureAppConfiguration((_, configuration) =>
-            {
-                configuration.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["ConnectionStrings:LicitacionesDb"] = fixture.ConnectionString,
-                });
-            });
-        }).CreateClient();
+        // Program.cs lee la cadena de conexión de forma síncrona y temprana (antes de
+        // builder.Build()), así que un ConfigureAppConfiguration inyectado vía
+        // WithWebHostBuilder llega demasiado tarde para hosting mínimo (Program.cs de
+        // top-level statements). Las variables de entorno sí las lee
+        // WebApplicationBuilder.CreateBuilder() desde la primera línea, así que son el
+        // mecanismo confiable para sobrescribir configuración en este escenario.
+        Environment.SetEnvironmentVariable("ConnectionStrings__LicitacionesDb", fixture.ConnectionString);
+
+        _client = factory.CreateClient();
     }
 
     [Fact]

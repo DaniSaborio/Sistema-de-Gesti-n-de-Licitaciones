@@ -2,7 +2,6 @@ using Licitaciones.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Playwright;
 using Testcontainers.PostgreSql;
@@ -35,17 +34,17 @@ public sealed class AplicacionWebFixture : IAsyncLifetime
     {
         await _postgres.StartAsync();
 
+        // Program.cs lee la cadena de conexión de forma síncrona y temprana (antes de
+        // builder.Build()), así que un ConfigureAppConfiguration inyectado vía
+        // WithWebHostBuilder llega demasiado tarde para hosting mínimo (Program.cs de
+        // top-level statements). Las variables de entorno sí las lee
+        // WebApplicationBuilder.CreateBuilder() desde la primera línea.
+        Environment.SetEnvironmentVariable("ConnectionStrings__LicitacionesDb", _postgres.GetConnectionString());
+
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseKestrel();
             builder.UseUrls("http://127.0.0.1:0");
-            builder.ConfigureAppConfiguration((_, configuration) =>
-            {
-                configuration.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["ConnectionStrings:LicitacionesDb"] = _postgres.GetConnectionString(),
-                });
-            });
         });
 
         // Fuerza la creación del servidor Kestrel real (no el TestServer en memoria)
