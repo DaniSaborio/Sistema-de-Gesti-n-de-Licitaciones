@@ -497,3 +497,6 @@ node_modules/
 
 # Claude Code local settings
 .claude/
+
+# Secretos reales de Kubernetes (usar app-secret.example.yaml como plantilla)
+k8s/app-secret.yaml

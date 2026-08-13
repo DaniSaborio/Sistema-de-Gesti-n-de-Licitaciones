@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: licitaciones-postgres
+  namespace: licitaciones
+spec:
+  clusterIP: None
+  selector:
+    app: licitaciones-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres

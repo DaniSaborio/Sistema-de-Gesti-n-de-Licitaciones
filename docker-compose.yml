@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-licitaciones}
+      POSTGRES_USER: ${POSTGRES_USER:-licitaciones}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-licitaciones}
+    volumes:
+      - licitaciones-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-licitaciones} -d ${POSTGRES_DB:-licitaciones}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__LicitacionesDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-licitaciones};Username=${POSTGRES_USER:-licitaciones};Password=${POSTGRES_PASSWORD:-licitaciones}"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  licitaciones-postgres-data:

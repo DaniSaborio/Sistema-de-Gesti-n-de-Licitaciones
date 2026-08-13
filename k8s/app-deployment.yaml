@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: licitaciones-app
+  namespace: licitaciones
+spec:
+  # Una sola réplica: la aplicación aplica migraciones EF Core al iniciar
+  # (Program.cs); escalar a más réplicas requeriría mover ese paso a un Job
+  # de despliegue independiente para evitar migraciones concurrentes.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: licitaciones-app
+  template:
+    metadata:
+      labels:
+        app: licitaciones-app
+    spec:
+      containers:
+        - name: app
+          # Reemplazar por la imagen publicada por GitHub Actions, p. ej.
+          # ghcr.io/<usuario>/sistema-gestion-licitaciones:<tag>
+          image: ghcr.io/danisaborio/sistema-gestion-licitaciones:latest
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: licitaciones-app-config
+            - secretRef:
+                name: licitaciones-db-credentials
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
