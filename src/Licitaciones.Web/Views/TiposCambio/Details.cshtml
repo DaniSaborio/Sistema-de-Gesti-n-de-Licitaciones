@@ -1,0 +1,47 @@
+@using Licitaciones.Application.TiposCambio
+@model TipoCambioDto
+@{
+    ViewData["Title"] = $"Tipo de cambio — {Model.FechaVigencia.LocalDateTime:dd/MM/yyyy}";
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <h1 class="h3 mb-0">Tipo de cambio</h1>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Colones por dólar</h2>
+                <p class="h4 mb-0">₡@Model.CRCporUSD.ToString("0.00")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Fecha de vigencia</h2>
+                <p class="h5 mb-0">@Model.FechaVigencia.LocalDateTime.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Estado</h2>
+                @if (Model.Activo)
+                {
+                    <span class="badge text-bg-success fs-6">Activo</span>
+                }
+                else
+                {
+                    <span class="badge text-bg-secondary fs-6">Inactivo</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>

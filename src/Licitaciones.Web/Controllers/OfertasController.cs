@@ -28,6 +28,21 @@ public sealed class OfertasController(
         return View(resultado);
     }
 
+public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+{
+    var oferta = await service.ObtenerAsync(id, cancellationToken);
+    var licitacion = await licitacionService.ObtenerAsync(oferta.LicitacionId, cancellationToken);
+    return View(new OfertaDetalleViewModel
+    {
+        Id = oferta.Id,
+        LicitacionId = licitacion.Id,
+        LicitacionCodigo = licitacion.Codigo,
+        LicitacionTitulo = licitacion.Titulo,
+        ProveedorNombre = oferta.ProveedorNombre,
+        MontoOfertadoCRC = oferta.MontoOfertadoCRC,
+        FechaRegistro = oferta.FechaRegistro,
+    });
+}
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var oferta = await service.ObtenerAsync(id, cancellationToken);

@@ -1,0 +1,47 @@
+@using Licitaciones.Application.NivelesAprobacion
+@model NivelAprobacionDto
+@{
+    ViewData["Title"] = $"Nivel de aprobación — {Model.Aprobador}";
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <h1 class="h3 mb-0">Nivel de aprobación</h1>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Monto mínimo</h2>
+                <p class="h4"><monto crc-amount="@Model.MontoMinimoCRC" /></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Monto máximo</h2>
+                @if (Model.MontoMaximoCRC is null)
+                {
+                    <p class="h4 mb-0">Sin límite</p>
+                }
+                else
+                {
+                    <p class="h4 mb-0"><monto crc-amount="@Model.MontoMaximoCRC.Value" /></p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Aprobador</h2>
+                <p class="h5 mb-0">@Model.Aprobador</p>
+            </div>
+        </div>
+    </div>
+</div>

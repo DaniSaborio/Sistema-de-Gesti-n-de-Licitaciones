@@ -15,6 +15,12 @@ public sealed class TiposCambioController(ITipoCambioService tipoCambioService)
         return View(resultado);
     }
 
+    public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+    {
+        var tipoCambio = await TipoCambioService.ObtenerAsync(id, cancellationToken);
+        return View(tipoCambio);
+    }
+
     public IActionResult Create() => View(new TipoCambioFormViewModel());
 
     [HttpPost]

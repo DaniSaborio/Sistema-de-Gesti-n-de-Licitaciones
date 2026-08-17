@@ -28,27 +28,28 @@
         }
         @foreach (var nivel in Model.Elementos)
         {
-            <tr>
-                <td><monto crc-amount="@nivel.MontoMinimoCRC" /></td>
-                <td>
-                    @if (nivel.MontoMaximoCRC is null)
-                    {
-                        <span>Sin límite</span>
-                    }
-                    else
-                    {
-                        <monto crc-amount="@nivel.MontoMaximoCRC.Value" />
-                    }
-                </td>
-                <td>@nivel.Aprobador</td>
-                <td class="tabla-acciones">
-                    <a asp-action="Edit" asp-route-id="@nivel.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
-                            data-eliminar-url="@Url.Action("Delete", new { id = nivel.Id })" data-eliminar-nombre="el nivel de @nivel.Aprobador">
-                        Eliminar
-                    </button>
-                </td>
-            </tr>
+         <tr>
+          <td><monto crc-amount="@nivel.MontoMinimoCRC" /></td>
+          <td>
+            @if (nivel.MontoMaximoCRC is null)
+            {
+                <span>Sin límite</span>
+            }
+            else
+            {
+                <monto crc-amount="@nivel.MontoMaximoCRC.Value" />
+            }
+          </td>
+          <td>@nivel.Aprobador</td>
+            <td class="tabla-acciones">
+    <a asp-action="Details" asp-route-id="@nivel.Id" class="btn btn-sm btn-outline-secondary">Ver</a>
+    <a asp-action="Edit" asp-route-id="@nivel.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+            data-eliminar-url="@Url.Action("Delete", new { id = nivel.Id })" data-eliminar-nombre="el nivel de @nivel.Aprobador">
+        Eliminar
+    </button>
+</td>
+           </tr>
         }
         </tbody>
     </table>

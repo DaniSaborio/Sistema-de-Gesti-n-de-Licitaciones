@@ -16,6 +16,12 @@ public sealed class NivelesAprobacionController(INivelAprobacionService service,
         return View(resultado);
     }
 
+    public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+{
+    var nivel = await service.ObtenerAsync(id, cancellationToken);
+    return View(nivel);
+}
+
     public IActionResult Create() => View(new NivelAprobacionFormViewModel());
 
     [HttpPost]

@@ -42,23 +42,24 @@
                     }
                 </td>
                 <td class="tabla-acciones">
-                    @if (!tipoCambio.Activo)
-                    {
-                        <form asp-action="Activar" asp-route-id="@tipoCambio.Id" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-outline-success">Activar</button>
-                        </form>
-                    }
-                    <a asp-action="Edit" asp-route-id="@tipoCambio.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
-                    @if (!tipoCambio.Activo)
-                    {
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
-                                data-eliminar-url="@Url.Action("Delete", new { id = tipoCambio.Id })" data-eliminar-nombre="este tipo de cambio">
-                            Eliminar
-                        </button>
-                    }
+                     <a asp-action="Details" asp-route-id="@tipoCambio.Id" class="btn btn-sm btn-outline-secondary">Ver</a>
+                 @if (!tipoCambio.Activo)
+                {
+                <form asp-action="Activar" asp-route-id="@tipoCambio.Id" method="post" class="d-inline">
+               <button type="submit" class="btn btn-sm btn-outline-success">Activar</button>
+              </form>
+             }
+                <a asp-action="Edit" asp-route-id="@tipoCambio.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                @if (!tipoCambio.Activo)
+             {
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                  data-eliminar-url="@Url.Action("Delete", new { id = tipoCambio.Id })" data-eliminar-nombre="este tipo de cambio">
+                  Eliminar
+                </button>
+              }
                 </td>
-            </tr>
-        }
+             </tr>
+         }
         </tbody>
     </table>
 </div>

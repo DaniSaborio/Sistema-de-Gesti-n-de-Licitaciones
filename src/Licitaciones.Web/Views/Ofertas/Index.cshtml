@@ -31,6 +31,7 @@
             {
                 <option value="@proveedor.Id" selected="@(proveedor.Id == proveedorId)">@proveedor.Nombre</option>
             }
+            
         </select>
     </div>
     <div class="col-auto">
@@ -54,22 +55,22 @@
         {
             <tr><td colspan="5" class="text-center text-body-secondary py-4">No hay ofertas registradas con estos filtros.</td></tr>
         }
-        @foreach (var oferta in Model.Elementos)
+       @foreach (var oferta in Model.Elementos)
         {
-            <tr>
-                <td><a asp-controller="Licitaciones" asp-action="Details" asp-route-id="@oferta.LicitacionId">Ver licitación</a></td>
-                <td>@oferta.ProveedorNombre</td>
-                <td><monto crc-amount="@oferta.MontoOfertadoCRC" /></td>
-                <td>@oferta.FechaRegistro.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td>
-                <td class="tabla-acciones">
-                    <a asp-action="Edit" asp-route-id="@oferta.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
-                            data-eliminar-url="@Url.Action("Delete", new { id = oferta.Id })" data-eliminar-nombre="la oferta de @oferta.ProveedorNombre">
-                        Eliminar
-                    </button>
-                </td>
-            </tr>
-        }
+         <tr>
+             <td><a asp-controller="Licitaciones" asp-action="Details" asp-route-id="@oferta.LicitacionId">Ver licitación</a></td>
+             <td>@oferta.ProveedorNombre</td>
+             <td><monto crc-amount="@oferta.MontoOfertadoCRC" /></td>
+             <td>@oferta.FechaRegistro.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+             <td class="tabla-acciones">
+             <a asp-action="Edit" asp-route-id="@oferta.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+             <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                    data-eliminar-url="@Url.Action("Delete", new { id = oferta.Id })" data-eliminar-nombre="la oferta de @oferta.ProveedorNombre">
+                Eliminar
+             </button>
+            </td>
+         </tr>
+        }   
         </tbody>
     </table>
 </div>

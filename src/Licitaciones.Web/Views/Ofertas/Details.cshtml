@@ -1,0 +1,40 @@
+@using Licitaciones.Web.Models.Ofertas
+@model OfertaDetalleViewModel
+@{
+    ViewData["Title"] = $"Oferta — {Model.ProveedorNombre}";
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <h1 class="h3 mb-0">Oferta de @Model.ProveedorNombre</h1>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Licitación</h2>
+                <p class="mb-3">
+                    <a asp-controller="Licitaciones" asp-action="Details" asp-route-id="@Model.LicitacionId">
+                        @Model.LicitacionCodigo — @Model.LicitacionTitulo
+                    </a>
+                </p>
+                <h2 class="h6 text-body-secondary">Proveedor</h2>
+                <p class="mb-0">@Model.ProveedorNombre</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-body-secondary">Monto ofertado</h2>
+                <p class="h4"><monto crc-amount="@Model.MontoOfertadoCRC" /></p>
+                <h2 class="h6 text-body-secondary">Fecha de registro</h2>
+                <p class="mb-0">@Model.FechaRegistro.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </div>
+    </div>
+</div>

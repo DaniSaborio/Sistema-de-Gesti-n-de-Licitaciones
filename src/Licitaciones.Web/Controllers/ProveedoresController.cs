@@ -16,6 +16,11 @@ public sealed class ProveedoresController(IProveedorService service, ITipoCambio
         return View(resultado);
     }
 
+public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+{
+    var proveedor = await service.ObtenerAsync(id, cancellationToken);
+    return View(proveedor);
+}
     public IActionResult Create() => View(new ProveedorFormViewModel());
 
     [HttpPost]

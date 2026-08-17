@@ -40,12 +40,13 @@
                 <td>@proveedor.Nombre</td>
                 <td>@proveedor.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                 <td class="tabla-acciones">
-                    <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
-                            data-eliminar-url="@Url.Action("Delete", new { id = proveedor.Id })" data-eliminar-nombre="@proveedor.Nombre">
-                        Eliminar
-                    </button>
-                </td>
+                 <a asp-action="Details" asp-route-id="@proveedor.Id" class="btn btn-sm btn-outline-secondary">Ver</a>
+                 <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                 <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-confirmar-eliminacion"
+                  data-eliminar-url="@Url.Action("Delete", new { id = proveedor.Id })" data-eliminar-nombre="@proveedor.Nombre">
+                   Eliminar
+                  </button>
+</td>
             </tr>
         }
         </tbody>
