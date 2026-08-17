@@ -68,7 +68,26 @@ el clúster real).
 
 ## Validación en este entorno
 
-Este entorno de generación no tiene `kubectl` ni un clúster disponible. Los ocho
-manifiestos se validaron parseando el YAML (sintaxis correcta) y se validan además en
-CI con `kubeconform` (esquema de Kubernetes, sin necesitar un clúster real) en el job
-`validar-manifiestos-k8s` de `.github/workflows/ci.yml`.
+Los ocho manifiestos se validaron primero parseando el YAML (sintaxis correcta) y se
+validan además en CI con `kubeconform` (esquema de Kubernetes, sin necesitar un
+clúster real) en el job `validar-manifiestos-k8s` de `.github/workflows/ci.yml`.
+
+Adicionalmente se aplicaron los ocho manifiestos en un clúster real (Kubernetes de
+Docker Desktop) siguiendo exactamente los pasos de este documento, incluyendo la
+copia y edición manual de `app-secret.example.yaml` a `app-secret.yaml`. Resultado:
+
+- Ambos pods (`licitaciones-postgres-0` y `licitaciones-app-*`) llegaron a
+  `Running`, `1/1`, sin reinicios.
+- El `startupProbe` de `app-deployment.yaml` falló varias veces al inicio
+  (`connection refused`/timeout mientras corría `dbContext.Database.Migrate()`) y se
+  recuperó dentro del margen configurado (`failureThreshold: 30`,
+  `periodSeconds: 2` → 60s) — el comportamiento esperado y documentado arriba, no un
+  defecto.
+- Con `kubectl port-forward -n licitaciones svc/licitaciones-app 8081:80`, la
+  aplicación respondió correctamente en `http://localhost:8081`, confirmando que
+  `app-service.yaml` → `app-deployment.yaml` → `app-configmap.yaml` /
+  `app-secret.yaml` → `postgres-service.yaml` → `postgres-statefulset.yaml` quedan
+  bien conectados de punta a punta.
+
+No se encontraron defectos en los manifiestos de `/k8s` a partir de esta prueba.
+
