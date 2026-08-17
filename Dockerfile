@@ -28,6 +28,13 @@ RUN dotnet publish src/Licitaciones.Web/Licitaciones.Web.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
 WORKDIR /app
 
+# icu-libs: la imagen alpine no trae datos de globalización por defecto, así que
+# CultureInfo.GetCultureInfo("es-CR") (formato de montos en colones) falla con
+# CultureNotFoundException en modo invariant. Ver
+# https://github.com/dotnet/dotnet-docker/blob/main/documentation/scenarios/globalization.md
+RUN apk add --no-cache icu-libs icu-data-full
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
 # Usuario no privilegiado (13.1): la imagen base "aspnet" ya incluye el
 # usuario/grupo "app" (uid/gid 64198) pensado para este propósito.
 RUN chown -R app:app /app
